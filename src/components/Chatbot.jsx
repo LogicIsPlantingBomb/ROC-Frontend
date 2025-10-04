@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import { MessageCircle, X, Send } from 'lucide-react';
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,7 +10,7 @@ const Chatbot = () => {
 
   useEffect(() => {
     if (!sessionId) {
-      setSessionId(uuidv4());
+      setSessionId(Math.random().toString(36).substring(7));
     }
   }, [sessionId]);
 
@@ -54,94 +53,113 @@ const Chatbot = () => {
   };
 
   return (
-    <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000 }}>
+    <div className="fixed bottom-6 right-6 z-50">
       <button
         onClick={toggleChat}
+        className="group relative bg-gradient-to-br from-gray-900 via-gray-800 to-black border-2 border-gray-600 text-gray-200 rounded-full w-16 h-16 flex items-center justify-center shadow-2xl hover:shadow-gray-700/50 hover:border-gray-400 transition-all duration-300 hover:scale-110"
         style={{
-          background: '#007bff',
-          color: 'white',
-          border: 'none',
-          borderRadius: '50%',
-          width: '60px',
-          height: '60px',
-          fontSize: '24px',
-          cursor: 'pointer',
-          boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
+          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(156, 163, 175, 0.3)'
         }}
       >
-        <span>&#129302;</span>
+        {isOpen ? (
+          <X className="w-7 h-7 text-gray-300 group-hover:text-white transition-colors" />
+        ) : (
+          <MessageCircle className="w-7 h-7 text-gray-300 group-hover:text-white transition-colors" />
+        )}
+        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-gray-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       </button>
+
       {isOpen && (
-        <div style={{
-          width: '350px',
-          height: '500px',
-          background: 'white',
-          borderRadius: '10px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          position: 'absolute',
-          bottom: '80px',
-          right: '0',
-        }}>
-          <div style={{
-            padding: '10px',
-            background: '#007bff',
-            color: 'white',
-            textAlign: 'center',
-            fontWeight: 'bold',
-          }}>
-            Cabio Chat
+        <div 
+          className="absolute bottom-20 right-0 w-96 h-[600px] rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 50%, #000000 100%)',
+            border: '1px solid rgba(156, 163, 175, 0.3)',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(156, 163, 175, 0.2)'
+          }}
+        >
+          {/* Header */}
+          <div 
+            className="p-4 text-center relative overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, #2d3748 0%, #1a202c 100%)',
+              borderBottom: '2px solid rgba(156, 163, 175, 0.3)'
+            }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-400/10 to-transparent"></div>
+            <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-200 via-gray-100 to-gray-300 relative z-10">
+              Cabio Chat
+            </h3>
+            <div className="text-xs text-gray-400 mt-1 relative z-10">AI Assistant</div>
           </div>
-          <div style={{ flex: 1, padding: '10px', overflowY: 'auto', background: '#f9f9f9' }}>
+
+          {/* Messages Area */}
+          <div className="flex-1 p-4 overflow-y-auto space-y-4" style={{ background: 'rgba(10, 10, 10, 0.8)' }}>
+            {messages.length === 0 && (
+              <div className="text-center text-gray-500 mt-20">
+                <MessageCircle className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                <p className="text-sm">Start a conversation...</p>
+              </div>
+            )}
             {messages.map((msg, index) => (
-              <div key={index} style={{
-                textAlign: msg.sender === 'user' ? 'right' : 'left',
-                marginBottom: '10px',
-              }}>
-                <div style={{
-                  display: 'inline-block',
-                  padding: '8px 12px',
-                  borderRadius: '15px',
-                  background: msg.sender === 'user' ? '#007bff' : '#e9e9eb',
-                  color: msg.sender === 'user' ? 'white' : 'black',
-                  maxWidth: '80%',
-                }}>
-                  {msg.text}
+              <div 
+                key={index} 
+                className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div 
+                  className={`max-w-[80%] px-4 py-3 rounded-2xl ${
+                    msg.sender === 'user' 
+                      ? 'bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900 text-gray-100 shadow-lg' 
+                      : 'bg-gradient-to-br from-gray-800 via-gray-900 to-black text-gray-200 shadow-lg'
+                  }`}
+                  style={{
+                    border: msg.sender === 'user' 
+                      ? '1px solid rgba(156, 163, 175, 0.4)' 
+                      : '1px solid rgba(107, 114, 128, 0.3)',
+                    boxShadow: msg.sender === 'user'
+                      ? '0 4px 15px rgba(75, 85, 99, 0.4)'
+                      : '0 4px 15px rgba(0, 0, 0, 0.6)'
+                  }}
+                >
+                  <p className="text-sm leading-relaxed">{msg.text}</p>
                 </div>
               </div>
             ))}
             <div ref={messagesEndRef} />
           </div>
-          <div style={{ padding: '10px', display: 'flex', borderTop: '1px solid #ccc' }}>
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-              style={{
-                flex: 1,
-                padding: '10px',
-                borderRadius: '20px',
-                border: '1px solid #ccc',
-                marginRight: '10px',
-              }}
-              placeholder="Ask me anything..."
-            />
-            <button onClick={handleSend} style={{
-              padding: '10px 15px',
-              borderRadius: '20px',
-              border: 'none',
-              background: '#007bff',
-              color: 'white',
-              cursor: 'pointer',
-            }}>
-              Send
-            </button>
+
+          {/* Input Area */}
+          <div 
+            className="p-4 border-t"
+            style={{
+              background: 'linear-gradient(135deg, #1f1f1f 0%, #0a0a0a 100%)',
+              borderTop: '1px solid rgba(156, 163, 175, 0.2)'
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                className="flex-1 px-4 py-3 rounded-full text-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all"
+                style={{
+                  background: 'rgba(31, 41, 55, 0.6)',
+                  border: '1px solid rgba(156, 163, 175, 0.3)',
+                  backdropFilter: 'blur(10px)'
+                }}
+                placeholder="Type your message..."
+              />
+              <button 
+                onClick={handleSend}
+                className="bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900 text-gray-200 p-3 rounded-full hover:from-gray-600 hover:via-gray-700 hover:to-gray-800 transition-all duration-300 shadow-lg hover:shadow-gray-700/50 hover:scale-105 border border-gray-600"
+                style={{
+                  boxShadow: '0 4px 15px rgba(0, 0, 0, 0.5)'
+                }}
+              >
+                <Send className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
       )}
