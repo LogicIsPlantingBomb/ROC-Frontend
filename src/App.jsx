@@ -12,6 +12,7 @@ import CaptainSignup from './pages/Captain/CaptainSignup';
 import CaptainProfile from './pages/Captain/CaptainProfile';
 import UserHome from './pages/User/UserHome';
 import CaptainHome from './pages/Captain/CaptainHome';
+import BikeRental from './pages/BikeRental/BikeRental';
 // Context Providers
 import { UserProvider } from './contexts/UserContext';
 import { CaptainProvider } from './contexts/CaptainContext';
@@ -41,6 +42,13 @@ function App() {
 		      			<UserHome />
 		      		</ProtectedRoute>
 	      } />
+
+              {/* Bike Rental Route */}
+              <Route path="/bike-rental" element={
+                <ProtectedRoute role="user">
+                  <BikeRental />
+                </ProtectedRoute>
+              } />
 
               {/* Captain Routes */}
               <Route path="/captain/login" element={<CaptainLogin />} />

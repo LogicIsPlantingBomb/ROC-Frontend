@@ -89,4 +89,13 @@ export const createRide = async (rideData) => {
   }
 };
 
+export const createRentalRequest = async (rentalData) => {
+    try {
+        const response = await api.post('/api/rentals', rentalData);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
 export default api;
