@@ -1,7 +1,8 @@
 import axios from 'axios';
 
+// ✅ MODIFICATION: The baseURL is now taken from your .env file
 const api = axios.create({
-  baseURL: 'http://localhost:3000',
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   withCredentials: true,
 });
 
@@ -39,7 +40,7 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // If error status is 401 and it's not a refresh token request
+    // If error status is 401 and it's not a retry request
     if (error.response.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise(function(resolve, reject) {
@@ -56,19 +57,24 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const response = await axios.post('http://localhost:3000/captains/refresh-token', {}, { withCredentials: true });
+        // ✅ MODIFICATION: The refresh token URL is now taken from your .env file
+        const response = await axios.post(
+            import.meta.env.VITE_API_REFRESH_URL, 
+            {}, 
+            { withCredentials: true }
+        );
         const { accessToken } = response.data;
 
         localStorage.setItem('accessToken', accessToken);
         api.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        
         processQueue(null, accessToken);
 
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        // Handle refresh token failure (e.g., redirect to login)
         localStorage.removeItem('accessToken');
-        // Optionally, redirect to login page
         window.location.href = '/captain/login';
         return Promise.reject(refreshError);
       } finally {
