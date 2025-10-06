@@ -24,6 +24,7 @@ const BikeRental = () => {
     const [position, setPosition] = useState([23.2599, 77.4126]); // Default position (Bhopal)
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
+    const [rentalRequestPending, setRentalRequestPending] = useState(false);
     const markerRef = useRef(null);
 
     // Helper function to get latitude and longitude safely
@@ -96,7 +97,7 @@ const BikeRental = () => {
         try {
             const response = await createRentalRequest(rentalData);
             if (response.success) {
-                setMessage('🎉 Bike rental request created successfully!');
+                setRentalRequestPending(true);
                 setDuration('');
                 setPrice('');
             } else {
@@ -205,83 +206,93 @@ const BikeRental = () => {
                                 <span>Rental Details</span>
                             </h3>
 
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                {/* Duration Input */}
-                                <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Clock className="w-5 h-5 text-gray-400" />
+                            {rentalRequestPending ? (
+                                <div className="p-6 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-300 text-center">
+                                    <p className="text-lg font-semibold mb-2">Request Sent!</p>
+                                    <p>Your bike rental request has been sent and is awaiting acceptance from a rider.</p>
+                                    <p className="text-sm mt-2">You will be notified once a rider accepts your request.</p>
+                                </div>
+                            ) : (
+                                <form onSubmit={handleSubmit} className="space-y-6">
+                                    {/* Duration Input */}
+                                    <div className="relative group">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <Clock className="w-5 h-5 text-gray-400" />
+                                        </div>
+                                        <input
+                                            type="number"
+                                            id="duration"
+                                            value={duration}
+                                            onChange={(e) => setDuration(e.target.value)}
+                                            placeholder="Rental Duration (minutes)"
+                                            className="w-full pl-10 pr-4 py-3 bg-gray-800/50 border border-gray-600/30 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                                            required
+                                            min="1"
+                                            disabled={rentalRequestPending}
+                                        />
                                     </div>
-                                    <input
-                                        type="number"
-                                        id="duration"
-                                        value={duration}
-                                        onChange={(e) => setDuration(e.target.value)}
-                                        placeholder="Rental Duration (minutes)"
-                                        className="w-full pl-10 pr-4 py-3 bg-gray-800/50 border border-gray-600/30 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                                        required
-                                        min="1"
-                                    />
-                                </div>
 
-                                {/* Price Input */}
-                                <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <DollarSign className="w-5 h-5 text-gray-400" />
+                                    {/* Price Input */}
+                                    <div className="relative group">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <DollarSign className="w-5 h-5 text-gray-400" />
+                                        </div>
+                                        <input
+                                            type="number"
+                                            id="price"
+                                            value={price}
+                                            onChange={(e) => setPrice(e.target.value)}
+                                            placeholder="Price per hour (₹)"
+                                            className="w-full pl-10 pr-4 py-3 bg-gray-800/50 border border-gray-600/30 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                                            required
+                                            min="1"
+                                            step="0.01"
+                                            disabled={rentalRequestPending}
+                                        />
                                     </div>
-                                    <input
-                                        type="number"
-                                        id="price"
-                                        value={price}
-                                        onChange={(e) => setPrice(e.target.value)}
-                                        placeholder="Price per hour (₹)"
-                                        className="w-full pl-10 pr-4 py-3 bg-gray-800/50 border border-gray-600/30 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                                        required
-                                        min="1"
-                                        step="0.01"
-                                    />
-                                </div>
 
-                                {/* Location Display */}
-                                <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-600/30">
-                                    <p className="text-sm text-gray-400 mb-2">Selected Location</p>
-                                    <p className="text-white font-mono text-sm">
-                                        Lat: {currentPos.lat.toFixed(6)}, Lng: {currentPos.lng.toFixed(6)}
-                                    </p>
-                                    <p className="text-xs text-gray-400 mt-1">
-                                        Drag the marker on the map to adjust location
-                                    </p>
-                                </div>
+                                    {/* Location Display */}
+                                    <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-600/30">
+                                        <p className="text-sm text-gray-400 mb-2">Selected Location</p>
+                                        <p className="text-white font-mono text-sm">
+                                            Lat: {currentPos.lat.toFixed(6)}, Lng: {currentPos.lng.toFixed(6)}
+                                        </p>
+                                        <p className="text-xs text-gray-400 mt-1">
+                                            Drag the marker on the map to adjust location
+                                        </p>
+                                    </div>
 
-                                {/* Submit Button */}
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="w-full bg-gradient-to-r from-green-600 to-emerald-700 text-white py-4 rounded-xl font-semibold hover:from-green-500 hover:to-emerald-600 disabled:opacity-50 transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center space-x-2"
-                                >
-                                    {loading ? (
-                                        <>
-                                            <div className="w-5 h-5 border-2 border-green-400/30 border-t-green-400 rounded-full animate-spin"></div>
-                                            <span>Creating Rental...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Bike className="w-5 h-5" />
-                                            <span>Create Rental Request</span>
-                                        </>
+                                    {/* Submit Button */}
+                                    <button
+                                        type="submit"
+                                        disabled={loading || rentalRequestPending}
+                                        className="w-full bg-gradient-to-r from-green-600 to-emerald-700 text-white py-4 rounded-xl font-semibold hover:from-green-500 hover:to-emerald-600 disabled:opacity-50 transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center space-x-2"
+                                    >
+                                        {loading ? (
+                                            <>
+                                                <div className="w-5 h-5 border-2 border-green-400/30 border-t-green-400 rounded-full animate-spin"></div>
+                                                <span>Creating Rental...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Bike className="w-5 h-5" />
+                                                <span>Create Rental Request</span>
+                                            </>
+                                        )}
+                                    </button>
+
+                                    {/* Message Display */}
+                                    {message && (
+                                        <div className={`p-4 rounded-xl border ${
+                                            message.includes('Error') 
+                                                ? 'bg-red-500/20 border-red-500/30 text-red-300' 
+                                                : 'bg-green-500/20 border-green-500/30 text-green-300'
+                                        }`}>
+                                            <p className="text-sm text-center">{message}</p>
+                                        </div>
                                     )}
-                                </button>
-
-                                {/* Message Display */}
-                                {message && (
-                                    <div className={`p-4 rounded-xl border ${
-                                        message.includes('Error') 
-                                            ? 'bg-red-500/20 border-red-500/30 text-red-300' 
-                                            : 'bg-green-500/20 border-green-500/30 text-green-300'
-                                    }`}>
-                                        <p className="text-sm text-center">{message}</p>
-                                    </div>
-                                )}
-                            </form>
+                                </form>
+                            )}
 
                             {/* Help Text */}
                             <div className="mt-6 p-4 bg-blue-500/10 rounded-xl border border-blue-500/20">
