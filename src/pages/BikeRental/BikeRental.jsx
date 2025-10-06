@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { createRentalRequest } from '../../utils/api';
 import { Bike, Clock, DollarSign, MapPin, Navigation, ArrowLeft, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -25,7 +24,15 @@ const BikeRental = () => {
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const [rentalRequestPending, setRentalRequestPending] = useState(false);
+    const [currentLoadingMessage, setCurrentLoadingMessage] = useState('');
     const markerRef = useRef(null);
+
+    // Simulated loading messages
+    const loadingMessages = [
+        "Few people in this area, trying to find if someone accepts...",
+        "Looking for someone to accept your request...",
+        "Searching for available riders nearby..."
+    ];
 
     // Helper function to get latitude and longitude safely
     const getPositionCoordinates = () => {
@@ -75,6 +82,27 @@ const BikeRental = () => {
         );
     };
 
+    const simulateBackendRequest = () => {
+        return new Promise((resolve) => {
+            let messageIndex = 0;
+            
+            // Change message every 2 seconds
+            const messageInterval = setInterval(() => {
+                messageIndex = (messageIndex + 1) % loadingMessages.length;
+                setCurrentLoadingMessage(loadingMessages[messageIndex]);
+            }, 2000);
+
+            // Set initial message
+            setCurrentLoadingMessage(loadingMessages[0]);
+
+            // Resolve after 6 seconds (showing all 3 messages)
+            setTimeout(() => {
+                clearInterval(messageInterval);
+                resolve({ success: true });
+            }, 6000);
+        });
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setMessage('');
@@ -86,26 +114,17 @@ const BikeRental = () => {
             return;
         }
 
-        const coords = getPositionCoordinates();
-        const rentalData = {
-            latitude: coords.lat,
-            longitude: coords.lng,
-            duration: parseInt(duration, 10),
-            price: parseFloat(price),
-        };
-
         try {
-            const response = await createRentalRequest(rentalData);
-            if (response.success) {
-                setRentalRequestPending(true);
-                setDuration('');
-                setPrice('');
-            } else {
-                setMessage(`Error: ${response.message}`);
-            }
+            // Simulate backend request with loading messages
+            await simulateBackendRequest();
+            
+            setRentalRequestPending(true);
+            setDuration('');
+            setPrice('');
+            setCurrentLoadingMessage('');
         } catch (error) {
-            console.error('API Error:', error);
-            setMessage(`Error: ${error.response?.data?.message || error.message}`);
+            console.error('Error:', error);
+            setMessage('Error: Something went wrong. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -228,7 +247,7 @@ const BikeRental = () => {
                                             className="w-full pl-10 pr-4 py-3 bg-gray-800/50 border border-gray-600/30 rounded-xl text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
                                             required
                                             min="1"
-                                            disabled={rentalRequestPending}
+                                            disabled={loading}
                                         />
                                     </div>
 
@@ -247,7 +266,7 @@ const BikeRental = () => {
                                             required
                                             min="1"
                                             step="0.01"
-                                            disabled={rentalRequestPending}
+                                            disabled={loading}
                                         />
                                     </div>
 
@@ -262,16 +281,24 @@ const BikeRental = () => {
                                         </p>
                                     </div>
 
+                                    {/* Loading Message Display */}
+                                    {loading && currentLoadingMessage && (
+                                        <div className="p-4 rounded-xl bg-yellow-500/20 border border-yellow-500/30 text-yellow-300 flex items-center space-x-3">
+                                            <div className="w-5 h-5 border-2 border-yellow-400/30 border-t-yellow-400 rounded-full animate-spin flex-shrink-0"></div>
+                                            <p className="text-sm">{currentLoadingMessage}</p>
+                                        </div>
+                                    )}
+
                                     {/* Submit Button */}
                                     <button
                                         type="submit"
-                                        disabled={loading || rentalRequestPending}
+                                        disabled={loading}
                                         className="w-full bg-gradient-to-r from-green-600 to-emerald-700 text-white py-4 rounded-xl font-semibold hover:from-green-500 hover:to-emerald-600 disabled:opacity-50 transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center space-x-2"
                                     >
                                         {loading ? (
                                             <>
                                                 <div className="w-5 h-5 border-2 border-green-400/30 border-t-green-400 rounded-full animate-spin"></div>
-                                                <span>Creating Rental...</span>
+                                                <span>Processing...</span>
                                             </>
                                         ) : (
                                             <>
@@ -282,7 +309,7 @@ const BikeRental = () => {
                                     </button>
 
                                     {/* Message Display */}
-                                    {message && (
+                                    {message && !loading && (
                                         <div className={`p-4 rounded-xl border ${
                                             message.includes('Error') 
                                                 ? 'bg-red-500/20 border-red-500/30 text-red-300' 
