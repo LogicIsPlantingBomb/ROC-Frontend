@@ -26,15 +26,17 @@ const Chatbot = () => {
     if (input.trim()) {
       const userMessage = { text: input, sender: 'user' };
       setMessages([...messages, userMessage]);
+      const currentInput = input;
       setInput('');
 
       try {
-        const response = await fetch('http://localhost:8000/chat', {
+        // ✅ MODIFICATION: The fetch URL is now taken from your .env file
+        const response = await fetch(import.meta.env.VITE_CHAT_API_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ question: input, session_id: sessionId }),
+          body: JSON.stringify({ question: currentInput, session_id: sessionId }),
         });
 
         if (!response.ok) {
